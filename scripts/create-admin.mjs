@@ -8,8 +8,8 @@ dotenv.config({ path: '.env.local' });
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'YOUR_SUPABASE_URL';
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 'YOUR_SERVICE_ROLE_KEY';
 
-const ADMIN_EMAIL    = '@email.com';
-const ADMIN_PASSWORD = '@email.com';
+const ADMIN_EMAIL    = process.env.ADMIN_EMAIL || 'admin@example.com';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'your_secure_password';
 const ADMIN_NAME     = 'Gurukul Vidyapeeth Admin';
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
