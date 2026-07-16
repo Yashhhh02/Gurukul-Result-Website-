@@ -2,9 +2,11 @@
 // Run: node scripts/create-admin.mjs
 
 import { createClient } from '@supabase/supabase-js';
+import * as dotenv from 'dotenv';
+dotenv.config({ path: '.env.local' });
 
-const SUPABASE_URL = 'https://utexojlpmhsfdkwbxxid.supabase.co';
-const SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV0ZXhvamxwbWhzZmRrd2J4eGlkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MzQzODI1MCwiZXhwIjoyMDk5MDE0MjUwfQ.W114XHVnlzpJnL0J30VqCbAz4il0sjlEmZkpi2If0xw';
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'YOUR_SUPABASE_URL';
+const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 'YOUR_SERVICE_ROLE_KEY';
 
 const ADMIN_EMAIL    = 'gurukulvidyapeeth4@gmail.com';
 const ADMIN_PASSWORD = 'Gurukul@admin12345';
