@@ -1,10 +1,15 @@
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@supabase/supabase-js';
 import { CheckCircle2, XCircle, AlertTriangle, ShieldCheck, User, BookOpen } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
 export default async function VerifyPage({ params }: { params: Promise<{ result_id: string }> }) {
-  const supabase = await createClient();
+  const supabase = supabaseAdmin;
   const { result_id } = await params;
 
   // 1. Fetch result summary
