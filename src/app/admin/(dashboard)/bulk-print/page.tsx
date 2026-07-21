@@ -56,7 +56,8 @@ function Marksheet({ studentData, schoolSettings, classTeacherSig, schoolSeal, e
   const maxMarksNumeric = isCSOrIT ? 100 : (is12th ? 100 : 200);
   const maxMarksTotal = numericSubjects.length * maxMarksNumeric;
   const percentage = maxMarksTotal > 0 ? ((grandTotal / maxMarksTotal) * 100).toFixed(2) : '0.00';
-  const verifyUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/verify/${studentData.id}`;
+  const resultId = studentData.result_summary?.[0]?.result_id || studentData.id;
+  const verifyUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://result-portal-one.vercel.app'}/verify/${resultId}`;
 
   return (
     <div style={{
@@ -122,6 +123,7 @@ function Marksheet({ studentData, schoolSettings, classTeacherSig, schoolSeal, e
             <tr style={{ backgroundColor: '#f0f0f0' }}>
               <th style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '700', whiteSpace: 'nowrap' }}>UNIQUE ID</th>
               <th style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '700', whiteSpace: 'nowrap' }}>STD - DIV</th>
+              <th style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '700', whiteSpace: 'nowrap' }}>STREAM</th>
               <th style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '700', whiteSpace: 'nowrap' }}>ROLL NO</th>
               <th style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '700' }}>STUDENT'S NAME</th>
               <th style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '700', whiteSpace: 'nowrap' }}>DATE OF BIRTH</th>
@@ -132,6 +134,7 @@ function Marksheet({ studentData, schoolSettings, classTeacherSig, schoolSeal, e
             <tr>
               <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '600' }}>{studentData.unique_id || '—'}</td>
               <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '600' }}>{studentData.class} {studentData.division}</td>
+              <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '600' }}>{studentData.subject_group || '—'}</td>
               <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '600' }}>{studentData.roll_number || '—'}</td>
               <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '700', textTransform: 'uppercase' }}>{studentData.student_name}</td>
               <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '600' }}>{formatDOB(studentData.dob)}</td>
@@ -402,7 +405,7 @@ export default async function BulkPrintPage({ searchParams }: { searchParams: Pr
 
   const query = supabaseAdmin
     .from('students')
-    .select('*, student_results(*, subjects(*))')
+    .select('*, student_results(*, subjects(*)), result_summary(*)')
     .eq('status', 'active')
     .order('roll_number', { ascending: true });
 

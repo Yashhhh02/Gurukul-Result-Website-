@@ -190,7 +190,7 @@ export default async function ResultPage() {
   const classTeacherSig = signatures.find(s => s.signature_type === 'class_teacher');
   const schoolSeal      = signatures.find(s => s.signature_type === 'school_seal');
 
-  const verifyUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://gurukul-result-portal.vercel.app'}/verify/${summaryData.result_id}`;
+  const verifyUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://result-portal-one.vercel.app'}/verify/${summaryData.result_id}`;
 
   return (
     <div className="min-h-screen bg-gray-100 py-4 px-2 print:py-0 print:px-0 flex flex-col items-center" style={{ fontFamily: 'Arial, Helvetica, sans-serif', fontSize: '10px' }}>
@@ -323,6 +323,7 @@ export default async function ResultPage() {
               <tr style={{ backgroundColor: '#f5f5f5' }}>
                 <th style={{ border: '1px solid #555', padding: '2px 4px', textAlign: 'center', fontWeight: '700', whiteSpace: 'nowrap' }}>UNIQUE ID</th>
                 <th style={{ border: '1px solid #555', padding: '2px 4px', textAlign: 'center', fontWeight: '700', whiteSpace: 'nowrap' }}>STD - DIV</th>
+                <th style={{ border: '1px solid #555', padding: '2px 4px', textAlign: 'center', fontWeight: '700', whiteSpace: 'nowrap' }}>STREAM</th>
                 <th style={{ border: '1px solid #555', padding: '2px 4px', textAlign: 'center', fontWeight: '700', whiteSpace: 'nowrap' }}>ROLL NO</th>
                 <th style={{ border: '1px solid #555', padding: '2px 4px', textAlign: 'center', fontWeight: '700' }}>STUDENT'S NAME</th>
                 <th style={{ border: '1px solid #555', padding: '2px 4px', textAlign: 'center', fontWeight: '700', whiteSpace: 'nowrap' }}>DATE OF BIRTH</th>
@@ -333,6 +334,7 @@ export default async function ResultPage() {
               <tr>
                 <td style={{ border: '1px solid #555', padding: '3px 4px', textAlign: 'center', fontWeight: '600' }}>{studentData.unique_id || '—'}</td>
                 <td style={{ border: '1px solid #555', padding: '3px 4px', textAlign: 'center', fontWeight: '600' }}>{studentData.class} {studentData.division}</td>
+                <td style={{ border: '1px solid #555', padding: '3px 4px', textAlign: 'center', fontWeight: '600' }}>{studentData.subject_group || '—'}</td>
                 <td style={{ border: '1px solid #555', padding: '3px 4px', textAlign: 'center', fontWeight: '600' }}>{studentData.roll_number || '—'}</td>
                 <td style={{ border: '1px solid #555', padding: '3px 4px', textAlign: 'center', fontWeight: '700', textTransform: 'uppercase' }}>{studentData.student_name}</td>
                 <td style={{ border: '1px solid #555', padding: '3px 4px', textAlign: 'center', fontWeight: '600' }}>{formatDOB(studentData.dob)}</td>
@@ -528,13 +530,13 @@ export default async function ResultPage() {
               </tr>
               {/* Percentage Row */}
               <tr style={{ backgroundColor: 'rgba(0,0,0,0.05)', fontWeight: '800' }}>
-                <td colSpan={is12th ? 5 : 6} style={{ border: '1px solid #555', padding: '3px 4px', textAlign: 'right', fontWeight: '800', fontSize: '9px', textTransform: 'uppercase' }}>
+                <td colSpan={isCSOrIT ? 3 : (is12th ? 5 : 6)} style={{ border: '1px solid #555', padding: '3px 4px', textAlign: 'right', fontWeight: '800', fontSize: '9px', textTransform: 'uppercase' }}>
                   PERCENTAGE (%)
                 </td>
                 <td style={{ border: '1px solid #555', padding: '3px 3px', textAlign: 'center', fontWeight: '900', fontSize: '10px' }}>
                   {grandTotalPercentage}%
                 </td>
-                <td colSpan={is12th ? 1 : 2} style={{ border: '1px solid #555', padding: '3px 4px', textAlign: 'center' }}></td>
+                <td colSpan={isCSOrIT ? 1 : (is12th ? 1 : 2)} style={{ border: '1px solid #555', padding: '3px 4px', textAlign: 'center' }}></td>
               </tr>
             </tbody>
               </>
