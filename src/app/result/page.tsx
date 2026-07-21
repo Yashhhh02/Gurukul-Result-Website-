@@ -176,6 +176,11 @@ export default async function ResultPage() {
   const grandTotal = numericSubjects.reduce((sum, s) => sum + (Number(s.grand_total) || 0), 0);
   const grandTotalPercentage = summaryData.percentage;
 
+  // Max marks per subject for out-of display
+  const isCSOrITStream = studentData.subject_group === 'CS' || studentData.subject_group === 'IT';
+  const maxPerSubject = isCSOrITStream ? 100 : (is12th ? 100 : 200);
+  const maxMarksTotal = numericSubjects.length * maxPerSubject;
+
   const collegeReopensOn = schoolSettings.college_reopens_on
     ? new Date(schoolSettings.college_reopens_on).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' })
     : '——';
@@ -342,10 +347,23 @@ export default async function ResultPage() {
         ═══════════════════════════════════════════════════ */}
         <div style={{ padding: '4px 8px 0' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '9px' }}>
+            {(() => {
+              const isCSOrIT = studentData.subject_group === 'CS' || studentData.subject_group === 'IT';
+              return (
+              <>
             <thead>
               {/* Row 1: Main headers */}
               <tr style={{ backgroundColor: '#f0f0f0' }}>
-                <th rowSpan={2} style={{ border: '1px solid #555', padding: '3px 4px', textAlign: 'left', fontWeight: '700', minWidth: '110px' }}>SUBJECTS</th>
+                <th rowSpan={isCSOrIT ? 1 : 2} style={{ border: '1px solid #555', padding: '3px 4px', textAlign: 'left', fontWeight: '700', minWidth: '110px' }}>SUBJECTS</th>
+                {isCSOrIT ? (
+                  <>
+                    <th rowSpan={1} style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '700', width: '15%' }}>PRACTICAL<br/>(30/20/50)</th>
+                    <th rowSpan={1} style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '700', width: '15%' }}>WRITTEN<br/>(70/50/80)</th>
+                    <th rowSpan={1} style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '700', width: '15%' }}>TOTAL<br/>(100)</th>
+                    <th rowSpan={1} style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '700', width: '15%' }}>COND.<br/>MARKS</th>
+                  </>
+                ) : (
+                  <>
                 <th rowSpan={2} style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '700', width: '44px' }}>I TERM<br/>(A)</th>
                 {!is12th && <th rowSpan={2} style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '700', width: '50px' }}>II TERM<br/>(B)</th>}
                 <th colSpan={2} style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '700' }}>UNIT TESTS</th>
@@ -353,23 +371,38 @@ export default async function ResultPage() {
                 <th rowSpan={2} style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '700', width: '50px' }}>{is12th ? 'GRAND TOTAL (100)' : 'GRAND TOTAL (A+B+C)'}</th>
                 {!is12th && <th rowSpan={2} style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '700', width: '44px' }}>AVG<br/>(÷2)</th>}
                 <th rowSpan={2} style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '700', width: '50px' }}>COND.<br/>MARKS</th>
+                  </>
+                )}
               </tr>
               {/* Row 2: Sub-headers for Unit Tests */}
-              <tr style={{ backgroundColor: '#f0f0f0' }}>
-                <th style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '700', width: '36px' }}>I (25)</th>
-                <th style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '700', width: '36px' }}>II (25)</th>
-              </tr>
+              {!isCSOrIT && (
+                <tr style={{ backgroundColor: '#f0f0f0' }}>
+                  <th style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '700', width: '36px' }}>I (25)</th>
+                  <th style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '700', width: '36px' }}>II (25)</th>
+                </tr>
+              )}
               {/* Row 3: Max marks row */}
               <tr style={{ backgroundColor: '#fafafa' }}>
                 <td style={{ border: '1px solid #555', padding: '2px 4px', fontWeight: '700', fontSize: '8px', textAlign: 'right', color: '#555' }}>MAX. MARKS →</td>
-                <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '700', fontSize: '8px' }}>50</td>
-                {!is12th && <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '700', fontSize: '8px' }}>100</td>}
-                <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '700', fontSize: '8px' }}>25</td>
-                <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '700', fontSize: '8px' }}>25</td>
-                <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '700', fontSize: '8px' }}>50</td>
-                <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '700', fontSize: '8px' }}>{is12th ? '100' : '200'}</td>
-                {!is12th && <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '700', fontSize: '8px' }}>100</td>}
-                <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '700', fontSize: '8px' }}>—</td>
+                {isCSOrIT ? (
+                  <>
+                    <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '700', fontSize: '8px' }}>—</td>
+                    <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '700', fontSize: '8px' }}>—</td>
+                    <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '700', fontSize: '8px' }}>100</td>
+                    <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '700', fontSize: '8px' }}>—</td>
+                  </>
+                ) : (
+                  <>
+                    <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '700', fontSize: '8px' }}>50</td>
+                    {!is12th && <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '700', fontSize: '8px' }}>100</td>}
+                    <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '700', fontSize: '8px' }}>25</td>
+                    <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '700', fontSize: '8px' }}>25</td>
+                    <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '700', fontSize: '8px' }}>50</td>
+                    <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '700', fontSize: '8px' }}>{is12th ? '100' : '200'}</td>
+                    {!is12th && <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '700', fontSize: '8px' }}>100</td>}
+                    <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '700', fontSize: '8px' }}>—</td>
+                  </>
+                )}
               </tr>
             </thead>
             <tbody>
@@ -393,20 +426,31 @@ export default async function ResultPage() {
                     <td style={{ border: '1px solid #555', padding: '2px 4px', fontWeight: '600', textTransform: 'uppercase' }}>
                       {getSubjectName(sub?.subject_code, sub?.subject_name)}
                     </td>
-                    <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center' }}>{disp(iTermA)}</td>
-                    {!is12th && <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center' }}>{disp(iiTermB)}</td>}
-                    <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center' }}>{disp(ut1)}</td>
-                    <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center' }}>{disp(ut2)}</td>
-                    <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center' }}>{disp(totalC)}</td>
-                    {is12th ? (
-                      <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '700' }}>{disp(Number(iTermA||0) + Number(totalC||0))}</td>
+                    {isCSOrIT ? (
+                      <>
+                        <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center' }}>{disp(iTermA)}</td>
+                        <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center' }}>{disp(iiTermB)}</td>
+                        <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '700' }}>{disp(Number(iTermA||0) + Number(iiTermB||0))}</td>
+                        <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center' }}>{cond ?? '–'}</td>
+                      </>
                     ) : (
                       <>
-                        <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '700' }}>{disp(grandTotR)}</td>
-                        <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '700' }}>{isAbsent ? 'AB' : avgMarks}</td>
+                        <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center' }}>{disp(iTermA)}</td>
+                        {!is12th && <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center' }}>{disp(iiTermB)}</td>}
+                        <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center' }}>{disp(ut1)}</td>
+                        <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center' }}>{disp(ut2)}</td>
+                        <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center' }}>{disp(totalC)}</td>
+                        {is12th ? (
+                          <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '700' }}>{disp(Number(iTermA||0) + Number(totalC||0))}</td>
+                        ) : (
+                          <>
+                            <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '700' }}>{disp(grandTotR)}</td>
+                            <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '700' }}>{isAbsent ? 'AB' : avgMarks}</td>
+                          </>
+                        )}
+                        <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center' }}>{cond ?? '–'}</td>
                       </>
                     )}
-                    <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center' }}>{cond ?? '–'}</td>
                   </tr>
                 );
               })}
@@ -420,33 +464,68 @@ export default async function ResultPage() {
                     <td style={{ border: '1px solid #555', padding: '2px 4px', fontWeight: '600', textTransform: 'uppercase' }}>
                       {getSubjectName(sub?.subject_code, sub?.subject_name)}
                     </td>
-                    <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', color: '#888' }}>–</td>
-                    {!is12th && <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', color: '#888' }}>–</td>}
-                    <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', color: '#888' }}>–</td>
-                    <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', color: '#888' }}>–</td>
-                    <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', color: '#888' }}>–</td>
-                    {is12th ? (
-                      <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '800', color: '#000', fontSize: '11px' }}>{grade}</td>
+                    {isCSOrIT ? (
+                      <>
+                        <td colSpan={2} style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', color: '#888' }}>–</td>
+                        <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '800', color: '#000', fontSize: '11px' }}>{grade}</td>
+                        <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', color: '#888' }}>–</td>
+                      </>
                     ) : (
-                      <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', color: '#888' }}>–</td>
+                      <>
+                        <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', color: '#888' }}>–</td>
+                        {!is12th && <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', color: '#888' }}>–</td>}
+                        <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', color: '#888' }}>–</td>
+                        <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', color: '#888' }}>–</td>
+                        <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', color: '#888' }}>–</td>
+                        {is12th ? (
+                          <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '800', color: '#000', fontSize: '11px' }}>{grade}</td>
+                        ) : (
+                          <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', color: '#888' }}>–</td>
+                        )}
+                        {!is12th && <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '800', color: '#000', fontSize: '11px' }}>{grade}</td>}
+                        <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', color: '#888' }}>–</td>
+                      </>
                     )}
-                    {!is12th && <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', fontWeight: '800', color: '#000', fontSize: '11px' }}>{grade}</td>}
-                    <td style={{ border: '1px solid #555', padding: '2px 3px', textAlign: 'center', color: '#888' }}>–</td>
                   </tr>
                 );
               })}
 
               {/* Grand Total Row */}
               <tr style={{ backgroundColor: 'rgba(0,0,0,0.05)', fontWeight: '800' }}>
-                <td colSpan={is12th ? 5 : 6} style={{ border: '1px solid #555', padding: '3px 4px', textAlign: 'right', fontWeight: '800', fontSize: '9px', textTransform: 'uppercase' }}>
+                <td style={{ border: '1px solid #555', padding: '3px 4px', textAlign: 'right' }}>
                   GRAND TOTAL
                 </td>
-                <td style={{ border: '1px solid #555', padding: '3px 3px', textAlign: 'center', fontWeight: '900', fontSize: '10px' }}>
-                  {grandTotal}
-                </td>
-                <td colSpan={is12th ? 1 : 2} style={{ border: '1px solid #555', padding: '3px 4px', textAlign: 'center' }}></td>
+                {isCSOrIT ? (
+                  <>
+                    <td colSpan={2} style={{ border: '1px solid #555', padding: '3px 3px', textAlign: 'center' }}></td>
+                    <td style={{ border: '1px solid #555', padding: '3px 3px', textAlign: 'center', fontSize: '11px' }}>
+                      <strong>{grandTotal}</strong> / {maxMarksTotal}
+                    </td>
+                    <td style={{ border: '1px solid #555' }}></td>
+                  </>
+                ) : (
+                  <>
+                    <td style={{ border: '1px solid #555', padding: '3px 3px', textAlign: 'center' }}></td>
+                    {!is12th && <td style={{ border: '1px solid #555', padding: '3px 3px', textAlign: 'center' }}></td>}
+                    <td style={{ border: '1px solid #555', padding: '3px 3px', textAlign: 'center' }}></td>
+                    <td style={{ border: '1px solid #555', padding: '3px 3px', textAlign: 'center' }}></td>
+                    <td style={{ border: '1px solid #555', padding: '3px 3px', textAlign: 'center' }}></td>
+                    {is12th ? (
+                      <td style={{ border: '1px solid #555', padding: '3px 3px', textAlign: 'center', fontSize: '11px' }}>
+                        <strong>{grandTotal}</strong> / {maxMarksTotal}
+                      </td>
+                    ) : (
+                      <>
+                        <td style={{ border: '1px solid #555', padding: '3px 3px', textAlign: 'center', fontSize: '11px' }}>
+                          <strong>{grandTotal}</strong> / {maxMarksTotal}
+                        </td>
+                        <td style={{ border: '1px solid #555', padding: '3px 3px', textAlign: 'center' }}></td>
+                      </>
+                    )}
+                    <td style={{ border: '1px solid #555' }}></td>
+                  </>
+                )}
               </tr>
-
               {/* Percentage Row */}
               <tr style={{ backgroundColor: 'rgba(0,0,0,0.05)', fontWeight: '800' }}>
                 <td colSpan={is12th ? 5 : 6} style={{ border: '1px solid #555', padding: '3px 4px', textAlign: 'right', fontWeight: '800', fontSize: '9px', textTransform: 'uppercase' }}>
@@ -458,6 +537,9 @@ export default async function ResultPage() {
                 <td colSpan={is12th ? 1 : 2} style={{ border: '1px solid #555', padding: '3px 4px', textAlign: 'center' }}></td>
               </tr>
             </tbody>
+              </>
+              );
+            })()}
           </table>
         </div>
 

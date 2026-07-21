@@ -238,7 +238,7 @@ export async function POST(request: Request) {
         totalMaxAvg += maxAvg;
 
         // Check fail condition per subject (Passing marks is usually 35 out of 100)
-        const passingMarks = subInfo.passing_marks || 35;
+        const passingMarks = (subInfo as any).passing_marks || 35;
         if (avgMarks < passingMarks || row[`${subName}_ITermA`] === 'AB') {
           isFail = true;
         }

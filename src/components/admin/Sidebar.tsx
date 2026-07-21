@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
   LayoutDashboard, Users, Upload, History, 
-  Settings, FileSignature, LogOut, ChevronLeft, ChevronRight
+  Settings, FileSignature, LogOut, ChevronLeft, ChevronRight, Printer
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -81,6 +81,7 @@ export default function Sidebar() {
         <NavItem href="/admin/students" icon={Users} label="Students" />
         <NavItem href="/admin/csv-upload" icon={Upload} label="Import CSV" />
         <NavItem href="/admin/import-history" icon={History} label="Import History" />
+        <NavItem href="/admin/bulk-print" icon={Printer} label="Bulk Print" />
         
         <div className={`pt-4 pb-2 transition-all duration-300 whitespace-nowrap ${isCollapsed ? 'opacity-0 h-0 p-0 overflow-hidden' : 'opacity-100 px-6'}`}>
           <p className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider">Configuration</p>

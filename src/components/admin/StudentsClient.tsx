@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Search, Filter, Plus, UploadCloud, MoreVertical, Edit2, Trash2, Eye } from 'lucide-react';
+import { Search, Filter, Plus, UploadCloud, MoreVertical, Edit2, Trash2, Eye, FileDown } from 'lucide-react';
 import Link from 'next/link';
 
 export default function StudentsClient({ initialStudents }: { initialStudents: any[] }) {
@@ -9,6 +9,28 @@ export default function StudentsClient({ initialStudents }: { initialStudents: a
   const [searchQuery, setSearchQuery] = useState('');
   const [classFilter, setClassFilter] = useState('All');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+
+  const handleDownloadPdf = async (student: any) => {
+    setDownloadingId(student.id);
+    try {
+      const secret = 'gurukul-pdf-2025';
+      const stream = student.subject_group || '';
+      const res = await fetch(`/api/admin/student-pdf?id=${student.id}&stream=${encodeURIComponent(stream)}&secret=${secret}`);
+      if (!res.ok) throw new Error('Failed');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `marksheet-${student.roll_number || student.id}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      alert('PDF generation failed. Try again.');
+    } finally {
+      setDownloadingId(null);
+    }
+  };
 
   // Extract unique classes for filter dropdown
   const uniqueClasses = ['All', ...Array.from(new Set(initialStudents.map(s => s.class)))].sort();
@@ -116,6 +138,16 @@ export default function StudentsClient({ initialStudents }: { initialStudents: a
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => handleDownloadPdf(student)}
+                          disabled={downloadingId === student.id}
+                          className="p-2 text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors disabled:opacity-50"
+                          title="Download PDF"
+                        >
+                          {downloadingId === student.id
+                            ? <span style={{ fontSize: '10px', fontWeight: 700 }}>...</span>
+                            : <FileDown className="w-4 h-4" />}
+                        </button>
                         <button className="p-2 text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors" title="View Details">
                           <Eye className="w-4 h-4" />
                         </button>
