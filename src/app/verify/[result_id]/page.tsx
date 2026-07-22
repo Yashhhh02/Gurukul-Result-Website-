@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { CheckCircle2, XCircle, AlertTriangle, ShieldCheck, User, BookOpen } from 'lucide-react';
 import Link from 'next/link';
+import AntiInspect from '@/components/AntiInspect';
 import { notFound } from 'next/navigation';
 
 const supabaseAdmin = createClient(
@@ -48,7 +49,9 @@ export default async function VerifyPage({ params }: { params: Promise<{ result_
   const statusText = isPassed ? 'PASSED & PROMOTED TO STD XII' : 'FAIL';
 
   return (
-    <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-xl overflow-hidden border border-gray-100 dark:border-slate-800">
+    <>
+      <AntiInspect />
+      <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-xl overflow-hidden border border-gray-100 dark:border-slate-800">
       
       {/* Header Banner */}
       <div className="bg-indigo-600 px-6 py-8 text-center relative overflow-hidden">
@@ -125,6 +128,7 @@ export default async function VerifyPage({ params }: { params: Promise<{ result_
       </div>
 
     </div>
+    </>
   );
 }
 

@@ -4,6 +4,7 @@ import { decrypt } from '@/lib/auth';
 import { createClient } from '@supabase/supabase-js';
 import QRCode from 'react-qr-code';
 import PrintActionBar from '@/components/result/PrintActionBar';
+import AntiInspect from '@/components/AntiInspect';
 
 // Maharashtra HSC — subject display order for marksheet
 const SUBJECT_ORDER = [
@@ -194,7 +195,7 @@ export default async function ResultPage() {
 
   return (
     <div className="min-h-screen bg-gray-100 py-4 px-2 print:py-0 print:px-0 flex flex-col items-center" style={{ fontFamily: 'Arial, Helvetica, sans-serif', fontSize: '10px' }}>
-
+      <AntiInspect />
       {/* ── Action Bar (not printed) ── */}
       <PrintActionBar />
 
