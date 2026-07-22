@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server';
 import ImportHistoryClient from '@/components/admin/ImportHistoryClient';
 
+export const dynamic = 'force-dynamic';
+
 export default async function ImportHistoryPage() {
   const supabase = await createClient();
 

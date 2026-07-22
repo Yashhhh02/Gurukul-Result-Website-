@@ -1,12 +1,33 @@
 'use client';
 
 import { useState } from 'react';
-import { Search, FileType, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { Search, FileType, CheckCircle, XCircle, AlertCircle, Trash2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { useRouter } from 'next/navigation';
 
 export default function ImportHistoryClient({ logs }: { logs: any[] }) {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
+
+  const handleDeleteLog = async (logId: string) => {
+    if (!confirm('Are you sure you want to delete this import? This will permanently delete all students and results associated with this file.')) return;
+    try {
+      const res = await fetch('/api/admin/import/delete-log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: logId })
+      });
+      if (res.ok) {
+        router.refresh();
+      } else {
+        const errorData = await res.json();
+        alert('Failed to delete: ' + errorData.error);
+      }
+    } catch (err: any) {
+      alert('Error deleting log: ' + err.message);
+    }
+  };
 
   const filteredLogs = logs.filter(log => {
     const matchesSearch = log.file_name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -54,6 +75,18 @@ export default function ImportHistoryClient({ logs }: { logs: any[] }) {
            >
              Results
            </button>
+           <button 
+             onClick={() => setFilterType('college-excel-IT-GEO')}
+             className={`flex-1 md:px-4 py-2 text-sm font-medium rounded-lg transition-colors ${filterType === 'college-excel-IT-GEO' ? 'bg-white dark:bg-slate-600 shadow-sm text-gray-900 dark:text-white' : 'text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'}`}
+           >
+             IT-Geo
+           </button>
+           <button 
+             onClick={() => setFilterType('college-excel-IT-NONGEO')}
+             className={`flex-1 md:px-4 py-2 text-sm font-medium rounded-lg transition-colors ${filterType === 'college-excel-IT-NONGEO' ? 'bg-white dark:bg-slate-600 shadow-sm text-gray-900 dark:text-white' : 'text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'}`}
+           >
+             IT-NonGeo
+           </button>
         </div>
       </div>
 
@@ -68,6 +101,7 @@ export default function ImportHistoryClient({ logs }: { logs: any[] }) {
                 <th className="px-6 py-4">Status</th>
                 <th className="px-6 py-4">Rows Processed</th>
                 <th className="px-6 py-4 text-right">Time</th>
+                <th className="px-6 py-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-slate-800">
@@ -88,7 +122,7 @@ export default function ImportHistoryClient({ logs }: { logs: any[] }) {
                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${
                          log.import_type === 'students' ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800' : 'bg-purple-50 text-purple-700 dark:bg-purple-900/20 dark:text-purple-300 border border-purple-200 dark:border-purple-800'
                        }`}>
-                         {log.import_type === 'students' ? 'Admissions' : 'Results'}
+                         {log.import_type === 'students' ? 'Admissions' : log.import_type.startsWith('college-excel') ? 'College Excel' : 'Results'}
                        </span>
                     </td>
                     <td className="px-6 py-4">
@@ -118,6 +152,15 @@ export default function ImportHistoryClient({ logs }: { logs: any[] }) {
                     </td>
                     <td className="px-6 py-4 text-right text-gray-500 dark:text-slate-400 text-xs">
                       {formatDistanceToNow(new Date(log.created_at), { addSuffix: true })}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <button 
+                        onClick={() => handleDeleteLog(log.id)}
+                        className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
+                        title="Delete Upload and Associated Students"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </td>
                   </tr>
                 ))
