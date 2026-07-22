@@ -1,0 +1,61 @@
+
+Inspecting IT_Students_WithGeography_v2.xlsx...
+Col 0: IT STUDENTS — PCB + IT + GEOGRAPHY + ENGLISH + PHY. EDU. + ENVIRONMENTAL STUDIES  [OUT OF 600] | SR.NO | undefined
+Col 1: undefined | STUDENT NAME | undefined
+Col 2: undefined | DATE OF BIRTH | undefined
+Col 3: undefined | UNIQUE ID | undefined
+Col 4: undefined | ROLL NO. | undefined
+Col 5: undefined | PHYSICS | PRACTICAL (30)
+Col 6: undefined | undefined | WRITTEN (70)
+Col 7: undefined | undefined | TOTAL (100)
+Col 8: undefined | CHEMISTRY | PRACTICAL (30)
+Col 9: undefined | undefined | WRITTEN (70)
+Col 10: undefined | undefined | TOTAL (100)
+Col 11: undefined | BIOLOGY | PRACTICAL (30)
+Col 12: undefined | undefined | WRITTEN (70)
+Col 13: undefined | undefined | TOTAL (100)
+Col 14: undefined | IT | PRACTICAL (20)
+Col 15: undefined | undefined | WRITTEN (80)
+Col 16: undefined | undefined | TOTAL (100)
+Col 17: undefined | GEOGRAPHY | PRACTICAL (30)
+Col 18: undefined | undefined | WRITTEN (70)
+Col 19: undefined | undefined | TOTAL (100)
+Col 20: undefined | ENGLISH | PRACTICAL (20)
+Col 21: undefined | undefined | WRITTEN (80)
+Col 22: undefined | undefined | TOTAL (100)
+Col 23: undefined | ENVIRONMENTAL
+STUDIES | undefined
+Col 24: undefined | PHYSICAL
+EDUCATION | undefined
+Col 25: undefined | TOTAL
+MARKS | undefined
+Col 26: undefined | PERCENTAGE | undefined
+
+Inspecting IT_Students_WithoutGeography_v2.xlsx...
+Col 0: IT STUDENTS — PCB + IT + ENGLISH + PHY. EDU. + ENVIRONMENTAL STUDIES  [OUT OF 500] | SR.NO | undefined
+Col 1: undefined | STUDENT NAME | undefined
+Col 2: undefined | DATE OF BIRTH | undefined
+Col 3: undefined | UNIQUE ID | undefined
+Col 4: undefined | ROLL NO. | undefined
+Col 5: undefined | PHYSICS | PRACTICAL (30)
+Col 6: undefined | undefined | WRITTEN (70)
+Col 7: undefined | undefined | TOTAL (100)
+Col 8: undefined | CHEMISTRY | PRACTICAL (30)
+Col 9: undefined | undefined | WRITTEN (70)
+Col 10: undefined | undefined | TOTAL (100)
+Col 11: undefined | BIOLOGY | PRACTICAL (30)
+Col 12: undefined | undefined | WRITTEN (70)
+Col 13: undefined | undefined | TOTAL (100)
+Col 14: undefined | IT | PRACTICAL (20)
+Col 15: undefined | undefined | WRITTEN (80)
+Col 16: undefined | undefined | TOTAL (100)
+Col 17: undefined | ENGLISH | PRACTICAL (20)
+Col 18: undefined | undefined | WRITTEN (80)
+Col 19: undefined | undefined | TOTAL (100)
+Col 20: undefined | ENVIRONMENTAL
+STUDIES | undefined
+Col 21: undefined | PHYSICAL
+EDUCATION | undefined
+Col 22: undefined | TOTAL
+MARKS | undefined
+Col 23: undefined | PERCENTAGE | undefined

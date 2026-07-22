@@ -6,11 +6,12 @@ import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 
 export default function CsvUploadClient() {
-  const [activeTab, setActiveTab] = useState<'admissions' | 'results'>('admissions');
+  const [activeTab, setActiveTab] = useState<'admissions' | 'results' | 'college-results'>('admissions');
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [statusMessage, setStatusMessage] = useState('');
+  const [streamType, setStreamType] = useState('CS'); // CS, IT-GEO, IT-NONGEO
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -126,6 +127,38 @@ export default function CsvUploadClient() {
     }
   };
 
+  const processRawExcel = async () => {
+    if (!file) return;
+    setIsUploading(true);
+    setUploadStatus('idle');
+    setStatusMessage(`Uploading raw Excel for ${streamType} stream...`);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('streamType', streamType);
+
+      const res = await fetch('/api/admin/import/college-excel', {
+        method: 'POST',
+        body: formData
+      });
+
+      const resData = await res.json();
+
+      if (res.ok) {
+        setUploadStatus('success');
+        setStatusMessage(`Successfully imported ${resData.successCount} students for stream ${streamType}.`);
+      } else {
+        throw new Error(resData.error || 'Import failed');
+      }
+    } catch (err: any) {
+      setUploadStatus('error');
+      setStatusMessage(err.message || 'An unexpected error occurred during raw excel import.');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500">
       
@@ -156,6 +189,16 @@ export default function CsvUploadClient() {
         >
           Exam Results Import
         </button>
+        <button
+          onClick={() => { setActiveTab('college-results'); setFile(null); setUploadStatus('idle'); }}
+          className={`flex-1 md:flex-none px-6 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+            activeTab === 'college-results' 
+              ? 'bg-white dark:bg-slate-800 text-teal-600 dark:text-teal-400 shadow-sm' 
+              : 'text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200'
+          }`}
+        >
+          College Marksheets (CS/IT)
+        </button>
       </div>
 
       {/* Upload Zone */}
@@ -163,14 +206,35 @@ export default function CsvUploadClient() {
         
         <div className="mb-6">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-            {activeTab === 'admissions' ? 'Upload Student Admissions' : 'Upload Student Marks'}
+            {activeTab === 'admissions' && 'Upload Student Admissions'}
+            {activeTab === 'results' && 'Upload Student Marks'}
+            {activeTab === 'college-results' && 'Upload College Marksheets (CS/IT Excel)'}
           </h2>
           <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">
-            {activeTab === 'admissions' 
-              ? 'Use this engine to register new students. The CSV/Excel must contain: Admission_No, Name, DOB, Class, Division, Session.' 
-              : 'Maharashtra HSC format — CSV/Excel must contain: Admission_No, Unique_ID, Roll_No, GR_No, Name, DOB, Class, Division, Subject_Group, Session, and subject marks.'}
+            {activeTab === 'admissions' && 'Use this engine to register new students. The CSV/Excel must contain: Admission_No, Name, DOB, Class, Division, Session.'}
+            {activeTab === 'results' && 'Maharashtra HSC format — CSV/Excel must contain: Admission_No, Unique_ID, Roll_No, GR_No, Name, DOB, Class, Division, Subject_Group, Session, and subject marks.'}
+            {activeTab === 'college-results' && 'Upload raw complex Excel sheets for CS and IT. The system will automatically parse multiple headers.'}
           </p>
         </div>
+
+        {activeTab === 'college-results' && (
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+              Select Stream Type
+            </label>
+            <select
+              value={streamType}
+              onChange={(e) => setStreamType(e.target.value)}
+              className="block w-full max-w-sm rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+            >
+              <option value="CS">Computer Science (CS)</option>
+              <option value="IT-GEO">IT (With Geography)</option>
+              <option value="IT-NONGEO">IT (Without Geography)</option>
+              <option value="PCM">PCM (Physics, Chem, Maths)</option>
+              <option value="PCMB">PCMB (Physics, Chem, Maths, Bio)</option>
+            </select>
+          </div>
+        )}
 
         <div 
           onDragOver={handleDragOver}
@@ -196,7 +260,7 @@ export default function CsvUploadClient() {
                   Change File
                 </button>
                 <button 
-                  onClick={processFile}
+                  onClick={activeTab === 'college-results' ? processRawExcel : processFile}
                   disabled={isUploading}
                   className="px-6 py-2 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
                 >

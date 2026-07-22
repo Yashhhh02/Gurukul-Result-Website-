@@ -1,0 +1,29 @@
+
+Inspecting IT_Students_Non_Geography_Final_v3.xlsx...
+Col 0: undefined | SR.NO | 1
+Col 1: undefined | STUDENT NAME | Aditi Dalvi
+Col 2: undefined | CLASS | 11TH 
+Col 3: undefined | DIV | B
+Col 4: undefined | DOB | 29/05/2009
+Col 5: undefined | UNIQUE ID | IT-0007
+Col 6: undefined | ROLL NO. | IT-007
+Col 7: undefined | GR.NO. | 722
+Col 8: undefined | STREAM | IT
+Col 9: undefined | COLLEGE ALLOTTED | Gurukul Manpada 
+Col 10: undefined | BRANCH | Naupada 
+Col 11: PHYSICS | PRACTICAL | 30
+Col 12: undefined | WRITTEN | 22
+Col 13: undefined | TOTAL | 52
+Col 14: CHEMISTRY | PRACTICAL | 30
+Col 15: undefined | WRITTEN | 46
+Col 16: undefined | TOTAL | 76
+Col 17: INFORMATION TECHNOLOGY | PRACTICAL | 20
+Col 18: undefined | WRITTEN | 47
+Col 19: undefined | TOTAL | 67
+Col 20: ENGLISH | PRACTICAL | 20
+Col 21: undefined | WRITTEN | 55
+Col 22: undefined | TOTAL | 75
+Col 23: undefined | ENVIRONMENTAL STUDIES | A
+Col 24: undefined | PHYSICAL EDUCATION | A
+Col 25: undefined | GRAND TOTAL (600) | 348
+Col 26: undefined | PERCENTAGE % | 0.58
