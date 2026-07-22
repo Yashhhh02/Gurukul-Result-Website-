@@ -1,31 +1,41 @@
 'use client';
 
 import { useState } from 'react';
-import { Search, FileType, CheckCircle, XCircle, AlertCircle, Trash2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { Search, FileType, CheckCircle, AlertCircle, XCircle, Trash2, Loader2, Info } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function ImportHistoryClient({ logs }: { logs: any[] }) {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
+  const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; logId: string | null; isDeleting: boolean; error: string | null }>({
+    isOpen: false,
+    logId: null,
+    isDeleting: false,
+    error: null
+  });
 
-  const handleDeleteLog = async (logId: string) => {
-    if (!confirm('Are you sure you want to delete this import? This will permanently delete all students and results associated with this file.')) return;
+  const confirmDelete = async () => {
+    if (!deleteModal.logId) return;
+    
+    setDeleteModal(prev => ({ ...prev, isDeleting: true, error: null }));
+    
     try {
       const res = await fetch('/api/admin/import/delete-log', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: logId })
+        body: JSON.stringify({ id: deleteModal.logId })
       });
       if (res.ok) {
+        setDeleteModal({ isOpen: false, logId: null, isDeleting: false, error: null });
         router.refresh();
       } else {
         const errorData = await res.json();
-        alert('Failed to delete: ' + errorData.error);
+        setDeleteModal(prev => ({ ...prev, isDeleting: false, error: errorData.error }));
       }
     } catch (err: any) {
-      alert('Error deleting log: ' + err.message);
+      setDeleteModal(prev => ({ ...prev, isDeleting: false, error: err.message }));
     }
   };
 
@@ -155,7 +165,7 @@ export default function ImportHistoryClient({ logs }: { logs: any[] }) {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <button 
-                        onClick={() => handleDeleteLog(log.id)}
+                        onClick={() => setDeleteModal({ isOpen: true, logId: log.id, isDeleting: false, error: null })}
                         className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
                         title="Delete Upload and Associated Students"
                       >
@@ -177,6 +187,59 @@ export default function ImportHistoryClient({ logs }: { logs: any[] }) {
           </table>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {deleteModal.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 max-w-md w-full shadow-2xl border border-gray-200 dark:border-slate-800 animate-in zoom-in-95 duration-200">
+            
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center shrink-0">
+                <AlertCircle className="w-6 h-6 text-red-600 dark:text-red-500" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">Delete Import?</h3>
+                <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">This action cannot be undone.</p>
+              </div>
+            </div>
+
+            <div className="bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 rounded-xl p-4 mb-6">
+              <p className="text-sm text-red-800 dark:text-red-400 font-medium flex items-start gap-2">
+                <Info className="w-4 h-4 shrink-0 mt-0.5" />
+                <span>All students, results, and summaries associated with this specific excel file will be permanently erased from the database.</span>
+              </p>
+            </div>
+
+            {deleteModal.error && (
+              <div className="mb-4 p-3 bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300 rounded-lg text-sm font-medium border border-red-200 dark:border-red-800">
+                Error: {deleteModal.error}
+              </div>
+            )}
+
+            <div className="flex gap-3 justify-end">
+              <button
+                disabled={deleteModal.isDeleting}
+                onClick={() => setDeleteModal({ isOpen: false, logId: null, isDeleting: false, error: null })}
+                className="px-5 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-xl transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                disabled={deleteModal.isDeleting}
+                onClick={confirmDelete}
+                className="px-5 py-2.5 text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl transition-colors disabled:opacity-50 flex items-center gap-2 shadow-sm shadow-red-500/20"
+              >
+                {deleteModal.isDeleting ? (
+                  <><Loader2 className="w-4 h-4 animate-spin" /> Deleting...</>
+                ) : (
+                  <><Trash2 className="w-4 h-4" /> Confirm Delete</>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
