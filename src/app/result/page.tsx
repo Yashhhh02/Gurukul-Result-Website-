@@ -1,6 +1,8 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { decrypt } from '@/lib/auth';
+export const dynamic = 'force-dynamic';
+
 import { createClient } from '@supabase/supabase-js';
 import QRCode from 'react-qr-code';
 import PrintActionBar from '@/components/result/PrintActionBar';

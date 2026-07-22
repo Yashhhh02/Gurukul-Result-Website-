@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { createClient } from '@supabase/supabase-js';
 import QRCode from 'react-qr-code';
 import PrintButton from '@/components/admin/PrintButton';

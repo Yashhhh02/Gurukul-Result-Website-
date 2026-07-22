@@ -214,17 +214,29 @@ export async function POST(request: Request) {
 
       const studentId = student.id;
       const resultsToUpsert = [];
+      
+      let total_marks = 0;
+      let hasFailed = false;
 
       // Add numeric results
       for (const mapping of numericMappings) {
         const subId = subjectIdMap[mapping.subjectCode];
         if (!subId) continue;
         
+        const pracMarks = parseFloat(row[mapping.pracKey]) || 0;
+        const writtenMarks = parseFloat(row[mapping.writtenKey]) || 0;
+        const subjectTotal = pracMarks + writtenMarks;
+        
+        total_marks += subjectTotal;
+        if (subjectTotal < 35) {
+          hasFailed = true;
+        }
+        
         resultsToUpsert.push({
           student_id: studentId,
           subject_id: subId,
-          i_term_marks: parseFloat(row[mapping.pracKey]) || 0,
-          ii_term_marks: parseFloat(row[mapping.writtenKey]) || 0,
+          i_term_marks: pracMarks,
+          ii_term_marks: writtenMarks,
           unit_test_1: 0,
           unit_test_2: 0,
           is_graded_only: false
@@ -247,6 +259,26 @@ export async function POST(request: Request) {
       }
 
       await adminSupabase.from('student_results').upsert(resultsToUpsert, { onConflict: 'student_id, subject_id' });
+      
+      // Calculate and Upsert Summary
+      const max_marks = numericMappings.length * 100;
+      const percentage = max_marks > 0 ? (total_marks / max_marks) * 100 : 0;
+      const result_status = hasFailed ? 'fail' : 'pass';
+
+      const summaryToUpsert = {
+        result_id: `RES-${admissionNumber}-${Date.now().toString().slice(-6)}`,
+        student_id: studentId,
+        total_marks,
+        max_marks,
+        percentage: parseFloat(percentage.toFixed(2)),
+        overall_grade: 'A', 
+        result_status,
+        progress_remark: result_status === 'pass' ? 'SATISFACTORY' : 'NEEDS IMPROVEMENT',
+        is_published: true
+      };
+
+      await adminSupabase.from('result_summary').upsert(summaryToUpsert, { onConflict: 'student_id' });
+
       successCount++;
     }
 
