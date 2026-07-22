@@ -61,6 +61,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
     }
 
+    const { data: importLog } = await adminSupabase.from('csv_import_logs').insert({
+      file_name: file.name,
+      import_type: 'college-excel-' + streamType,
+      status: 'completed',
+      total_rows: 0,
+      success_rows: 0,
+      failed_rows: 0
+    }).select('id').single();
+    const importLogId = importLog?.id;
+
     const buffer = await file.arrayBuffer();
     const workbook = XLSX.read(buffer, { type: 'buffer' });
     const sheetName = workbook.SheetNames[0];
@@ -201,6 +211,7 @@ export async function POST(request: Request) {
         division: div,
         subject_group: streamName,
         academic_session: '2025-2026',
+        import_log_id: importLogId || null,
         status: 'active'
       };
 
@@ -280,6 +291,13 @@ export async function POST(request: Request) {
       await adminSupabase.from('result_summary').upsert(summaryToUpsert, { onConflict: 'student_id' });
 
       successCount++;
+    }
+
+    if (importLogId) {
+      await adminSupabase.from('csv_import_logs').update({
+        total_rows: rows.length,
+        success_rows: successCount,
+      }).eq('id', importLogId);
     }
 
     return NextResponse.json({ success: true, successCount });

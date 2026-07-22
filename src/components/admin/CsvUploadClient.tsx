@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { UploadCloud, FileType, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { UploadCloud, FileType, CheckCircle, AlertCircle, Loader2, Trash2 } from 'lucide-react';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 
@@ -12,6 +12,46 @@ export default function CsvUploadClient() {
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [statusMessage, setStatusMessage] = useState('');
   const [streamType, setStreamType] = useState('CS'); // CS, IT-GEO, IT-NONGEO
+  const [importLogs, setImportLogs] = useState<any[]>([]);
+  const [isLoadingLogs, setIsLoadingLogs] = useState(false);
+
+  const fetchLogs = useCallback(async () => {
+    setIsLoadingLogs(true);
+    try {
+      const res = await fetch('/api/admin/import/logs');
+      if (res.ok) {
+        const data = await res.json();
+        setImportLogs(data.logs || []);
+      }
+    } catch (err) {
+      console.error('Failed to fetch logs:', err);
+    } finally {
+      setIsLoadingLogs(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchLogs();
+  }, [fetchLogs]);
+
+  const handleDeleteLog = async (logId: string) => {
+    if (!confirm('Are you sure you want to delete this import? This will permanently delete all students and results associated with this file.')) return;
+    try {
+      const res = await fetch('/api/admin/import/delete-log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: logId })
+      });
+      if (res.ok) {
+        fetchLogs();
+      } else {
+        const errorData = await res.json();
+        alert('Failed to delete: ' + errorData.error);
+      }
+    } catch (err: any) {
+      alert('Error deleting log: ' + err.message);
+    }
+  };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -67,6 +107,7 @@ export default function CsvUploadClient() {
         const successCount = resData.successCount ?? resData.success_count ?? parsedData.length;
         const errorCount   = resData.errorCount   ?? resData.error_count   ?? resData.failed_rows ?? 0;
         setStatusMessage(`Successfully imported ${successCount} students with results.${ errorCount > 0 ? ` Failed: ${errorCount}.` : ''}`);
+        fetchLogs();
       } else {
         throw new Error(resData.error || 'Import failed');
       }
@@ -148,6 +189,7 @@ export default function CsvUploadClient() {
       if (res.ok) {
         setUploadStatus('success');
         setStatusMessage(`Successfully imported ${resData.successCount} students for stream ${streamType}.`);
+        fetchLogs();
       } else {
         throw new Error(resData.error || 'Import failed');
       }
@@ -304,6 +346,63 @@ export default function CsvUploadClient() {
               <h4 className="font-semibold">{uploadStatus === 'success' ? 'Import Successful' : 'Import Failed'}</h4>
               <p className="text-sm mt-1 opacity-90">{statusMessage}</p>
             </div>
+          </div>
+        )}
+      </div>
+
+      {/* Import History */}
+      <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-8 shadow-sm">
+        <div className="mb-6">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Import History</h2>
+          <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">Review your recent data uploads and easily roll back specific files.</p>
+        </div>
+        
+        {isLoadingLogs ? (
+          <div className="flex justify-center p-8"><Loader2 className="w-8 h-8 animate-spin text-indigo-500" /></div>
+        ) : importLogs.length === 0 ? (
+          <div className="text-center p-8 text-gray-500">No import history found.</div>
+        ) : (
+          <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-slate-700">
+            <table className="w-full text-sm text-left">
+              <thead className="bg-gray-50 dark:bg-slate-800 text-gray-700 dark:text-gray-300">
+                <tr>
+                  <th className="px-4 py-3 font-semibold">Date</th>
+                  <th className="px-4 py-3 font-semibold">File Name</th>
+                  <th className="px-4 py-3 font-semibold">Type</th>
+                  <th className="px-4 py-3 font-semibold text-center">Students</th>
+                  <th className="px-4 py-3 font-semibold text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 dark:divide-slate-700">
+                {importLogs.map((log) => (
+                  <tr key={log.id} className="hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors">
+                    <td className="px-4 py-3 text-gray-600 dark:text-gray-400">
+                      {new Date(log.created_at).toLocaleString('en-IN')}
+                    </td>
+                    <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">
+                      {log.file_name}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400">
+                        {log.import_type}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-center font-medium">
+                      {log.success_rows}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <button
+                        onClick={() => handleDeleteLog(log.id)}
+                        className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
+                        title="Delete Upload and Associated Students"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </div>
