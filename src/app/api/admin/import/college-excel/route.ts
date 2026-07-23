@@ -61,15 +61,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
     }
 
-    const { data: importLog } = await adminSupabase.from('csv_import_logs').insert({
+    const { data: importLog, error: logError } = await adminSupabase.from('csv_import_logs').insert({
       imported_by: user.id,
       file_name: file.name,
-      import_type: 'college-excel-' + streamType,
+      import_type: 'results',
       status: 'completed',
       total_rows: 0,
       success_rows: 0,
       failed_rows: 0
     }).select('id').single();
+    
+    if (logError) {
+      console.error("Failed to create initial import log", logError);
+      return NextResponse.json({ error: 'Failed to initialize import log.' }, { status: 500 });
+    }
     const importLogId = importLog?.id;
 
     const buffer = await file.arrayBuffer();
