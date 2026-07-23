@@ -1,19 +1,44 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import { createClient } from '@/lib/supabase/server';
 
 // Use service role key to bypass RLS for administrative bulk imports
-const supabase = createClient(
+const adminSupabase = createSupabaseClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
 export async function POST(req: Request) {
   try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { fileName, data } = await req.json();
 
     if (!data || !Array.isArray(data)) {
       return NextResponse.json({ error: 'Invalid data format' }, { status: 400 });
     }
+
+    // 0. Create Import Log initially
+    const { data: importLog, error: logError } = await adminSupabase.from('csv_import_logs').insert({
+      imported_by:      user.id,
+      file_name:        fileName || 'Admissions Upload',
+      total_rows:       data.length,
+      success_rows:     0,
+      status:           'processing',
+      import_type:      'students',
+      academic_session: data[0]?.Academic_Session || '2024-25'
+    }).select('id').single();
+
+    if (logError) {
+      console.error("Failed to create initial import log", logError);
+      return NextResponse.json({ error: 'Failed to initialize import log.' }, { status: 500 });
+    }
+    const importLogId = importLog?.id;
 
     // Map CSV rows to DB columns, filtering out totally empty rows
     const studentsToInsert = data.map((row: any) => ({
@@ -23,6 +48,7 @@ export async function POST(req: Request) {
       gender: row.Gender || 'Other',
       class: row.Class || 'Unknown',
       academic_session: row.Academic_Session || '2024-25',
+      import_log_id: importLogId,
       status: 'active'
     })).filter((s: any) => s.admission_number && s.student_name); 
 
@@ -31,7 +57,7 @@ export async function POST(req: Request) {
     }
 
     // Bulk Upsert (to gracefully handle duplicates)
-    const { data: insertedData, error } = await supabase
+    const { data: insertedData, error } = await adminSupabase
       .from('students')
       .upsert(studentsToInsert, { onConflict: 'admission_number,academic_session', ignoreDuplicates: false })
       .select();
@@ -44,14 +70,11 @@ export async function POST(req: Request) {
     const successCount = insertedData ? insertedData.length : 0;
 
     // Log the import to Import History
-    await supabase.from('csv_import_logs').insert({
-      file_name: fileName,
-      total_rows: studentsToInsert.length,
+    await adminSupabase.from('csv_import_logs').update({
       success_rows: successCount,
       failed_rows: studentsToInsert.length - successCount,
-      status: 'completed',
-      import_type: 'students'
-    });
+      status: 'completed'
+    }).eq('id', importLogId);
 
     return NextResponse.json({ 
       successCount: successCount,

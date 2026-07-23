@@ -48,11 +48,29 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { data: rows } = body;
-
+    const { data: rows, fileName } = body;
+    
     if (!rows || !Array.isArray(rows) || rows.length === 0) {
       return NextResponse.json({ error: 'No data provided or invalid format.' }, { status: 400 });
     }
+
+    // 0. Create Import Log initially
+    const { data: importLog, error: logError } = await adminSupabase.from('csv_import_logs').insert({
+      imported_by:      user.id,
+      file_name:        fileName || 'Admin API Upload',
+      total_rows:       rows.length,
+      success_rows:     0,
+      status:           'processing',
+      import_type:      'results',
+      academic_session: rows[0]?.Session || rows[0]?.academic_session || '2024-2025'
+    }).select('id').single();
+
+    if (logError) {
+      console.error("Failed to create initial import log", logError);
+      return NextResponse.json({ error: 'Failed to initialize import log.' }, { status: 500 });
+    }
+    const importLogId = importLog?.id;
+
 
     const headers = Object.keys(rows[0]);
 
@@ -156,6 +174,7 @@ export async function POST(request: Request) {
       division:         String(row.Division || row.division || 'A').trim(),
       subject_group:    String(row.Subject_Group || row.subject_group || '').trim() || null,
       academic_session: String(row.Session || row.academic_session || '2024-2025').trim(),
+      import_log_id:    importLogId,
       status:           'active'
     })).filter((s: any) => s.admission_number && s.student_name);
 
@@ -316,16 +335,11 @@ export async function POST(request: Request) {
       if (summaryError) throw new Error(`Failed to upsert summary: ${summaryError.message}`);
     }
 
-    // Log the import
-    await adminSupabase.from('csv_import_logs').insert({
-      imported_by:      user.id,
-      file_name:        'Admin API Upload',
-      total_rows:       rows.length,
+    // Log the import completion
+    await adminSupabase.from('csv_import_logs').update({
       success_rows:     studentsToUpsert.length,
-      status:           'completed',
-      import_type:      'results',
-      academic_session: rows[0]?.Session || rows[0]?.academic_session || '2024-2025'
-    });
+      status:           'completed'
+    }).eq('id', importLogId);
 
     return NextResponse.json({
       success:      true,

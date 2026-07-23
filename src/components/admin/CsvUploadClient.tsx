@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { UploadCloud, FileType, CheckCircle, AlertCircle, Loader2, Trash2, Info } from 'lucide-react';
+import { UploadCloud, FileType, CheckCircle, AlertCircle, Loader2, Trash2, Info, Printer } from 'lucide-react';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
+import Link from 'next/link';
 
 export default function CsvUploadClient() {
   const [activeTab, setActiveTab] = useState<'admissions' | 'results' | 'college-results'>('admissions');
@@ -401,13 +402,24 @@ export default function CsvUploadClient() {
                       {log.success_rows}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <button
-                        onClick={() => setDeleteModal({ isOpen: true, logId: log.id, isDeleting: false, error: null })}
-                        className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
-                        title="Delete Upload and Associated Students"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex justify-end items-center gap-2">
+                        {log.import_type !== 'students' && (
+                          <Link
+                            href={`/admin/print-batch/${log.id}`}
+                            className="p-1.5 text-indigo-600 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-900/20 rounded-md transition-colors inline-flex"
+                            title="Print Bulk Marksheets"
+                          >
+                            <Printer className="w-4 h-4" />
+                          </Link>
+                        )}
+                        <button
+                          onClick={() => setDeleteModal({ isOpen: true, logId: log.id, isDeleting: false, error: null })}
+                          className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
+                          title="Delete Upload and Associated Students"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

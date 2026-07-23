@@ -62,6 +62,7 @@ export async function POST(request: Request) {
     }
 
     const { data: importLog } = await adminSupabase.from('csv_import_logs').insert({
+      imported_by: user.id,
       file_name: file.name,
       import_type: 'college-excel-' + streamType,
       status: 'completed',

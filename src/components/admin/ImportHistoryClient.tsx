@@ -2,8 +2,9 @@
 
 import { useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
-import { Search, FileType, CheckCircle, AlertCircle, XCircle, Trash2, Loader2, Info } from 'lucide-react';
+import { Search, FileType, CheckCircle, AlertCircle, XCircle, Trash2, Loader2, Info, Printer } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function ImportHistoryClient({ logs }: { logs: any[] }) {
   const router = useRouter();
@@ -164,13 +165,24 @@ export default function ImportHistoryClient({ logs }: { logs: any[] }) {
                       {formatDistanceToNow(new Date(log.created_at), { addSuffix: true })}
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <button 
-                        onClick={() => setDeleteModal({ isOpen: true, logId: log.id, isDeleting: false, error: null })}
-                        className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
-                        title="Delete Upload and Associated Students"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex justify-end items-center gap-2">
+                        {log.import_type !== 'students' && (
+                          <Link
+                            href={`/admin/print-batch/${log.id}`}
+                            className="p-1.5 text-indigo-600 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-900/20 rounded-md transition-colors inline-flex"
+                            title="Print Bulk Marksheets"
+                          >
+                            <Printer className="w-4 h-4" />
+                          </Link>
+                        )}
+                        <button 
+                          onClick={() => setDeleteModal({ isOpen: true, logId: log.id, isDeleting: false, error: null })}
+                          className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
+                          title="Delete Upload and Associated Students"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
