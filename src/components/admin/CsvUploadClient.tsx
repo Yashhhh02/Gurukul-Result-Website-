@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { UploadCloud, FileType, CheckCircle, AlertCircle, Loader2, Trash2, Info, Printer } from 'lucide-react';
+import { UploadCloud, FileType, CheckCircle, AlertCircle, Loader2, Trash2, Info, Printer, Eye } from 'lucide-react';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function CsvUploadClient() {
   const [activeTab, setActiveTab] = useState<'admissions' | 'results' | 'college-results'>('admissions');
@@ -15,6 +16,7 @@ export default function CsvUploadClient() {
   const [streamType, setStreamType] = useState('CS'); // CS, IT-GEO, IT-NONGEO
   const [importLogs, setImportLogs] = useState<any[]>([]);
   const [isLoadingLogs, setIsLoadingLogs] = useState(false);
+  const router = useRouter();
   const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; logId: string | null; isDeleting: boolean; error: string | null }>({
     isOpen: false,
     logId: null,
@@ -119,6 +121,7 @@ export default function CsvUploadClient() {
         const errorCount   = resData.errorCount   ?? resData.error_count   ?? resData.failed_rows ?? 0;
         setStatusMessage(`Successfully imported ${successCount} students with results.${ errorCount > 0 ? ` Failed: ${errorCount}.` : ''}`);
         fetchLogs();
+        router.push('/admin/import-history');
       } else {
         throw new Error(resData.error || 'Import failed');
       }
@@ -201,6 +204,7 @@ export default function CsvUploadClient() {
         setUploadStatus('success');
         setStatusMessage(`Successfully imported ${resData.successCount} students for stream ${streamType}.`);
         fetchLogs();
+        router.push('/admin/import-history');
       } else {
         throw new Error(resData.error || 'Import failed');
       }
@@ -403,6 +407,13 @@ export default function CsvUploadClient() {
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex justify-end items-center gap-2">
+                        <Link
+                          href={`/admin/import-history/${log.id}`}
+                          className="p-1.5 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20 rounded-md transition-colors inline-flex"
+                          title="View Imported Students"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Link>
                         {log.import_type !== 'students' && (
                           <Link
                             href={`/admin/print-batch/${log.id}`}

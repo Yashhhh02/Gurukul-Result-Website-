@@ -376,6 +376,13 @@ export default async function BulkPrintPage({ searchParams }: { searchParams: Pr
   );
 
   if (!stream) {
+    const { data: recentLogs } = await supabaseAdmin
+      .from('csv_import_logs')
+      .select('*')
+      .eq('import_type', 'results')
+      .order('created_at', { ascending: false })
+      .limit(5);
+
     return (
       <div style={{ padding: '32px', maxWidth: '480px', margin: '40px auto', background: '#fff', borderRadius: '8px', boxShadow: '0 2px 10px rgba(0,0,0,0.1)', border: '1px solid #e5e7eb' }}>
         <h1 style={{ fontSize: '22px', fontWeight: '700', marginBottom: '12px', color: '#1f2937' }}>Bulk Print Marksheets</h1>
@@ -393,6 +400,32 @@ export default async function BulkPrintPage({ searchParams }: { searchParams: Pr
             Generate
           </button>
         </form>
+
+        {recentLogs && recentLogs.length > 0 && (
+          <div style={{ marginTop: '32px', borderTop: '1px solid #e5e7eb', paddingTop: '24px' }}>
+            <h2 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '16px', color: '#374151' }}>Or generate from recent uploads</h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {recentLogs.map((log: any) => (
+                <div key={log.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', border: '1px solid #e5e7eb', borderRadius: '8px', background: '#f9fafb' }}>
+                  <div style={{ flex: 1, minWidth: 0, paddingRight: '12px' }}>
+                    <p style={{ margin: 0, fontWeight: '600', fontSize: '14px', color: '#111827', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={log.file_name}>
+                      {log.file_name}
+                    </p>
+                    <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#6b7280' }}>
+                      Uploaded: {new Date(log.created_at).toLocaleString('en-IN')}
+                    </p>
+                  </div>
+                  <a 
+                    href={`/admin/print-batch/${log.id}`} 
+                    style={{ padding: '6px 14px', background: '#1e40af', color: '#fff', borderRadius: '6px', textDecoration: 'none', fontSize: '13px', fontWeight: '600', whiteSpace: 'nowrap' }}
+                  >
+                    Generate
+                  </a>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     );
   }

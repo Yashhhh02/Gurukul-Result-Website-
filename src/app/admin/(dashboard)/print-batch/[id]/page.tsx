@@ -1,4 +1,5 @@
-import { createClient } from '@/lib/supabase/server';
+import { createClient as createSupabaseClient } from '@/lib/supabase/server';
+import { createClient } from '@supabase/supabase-js';
 import { redirect } from 'next/navigation';
 import QRCode from 'react-qr-code';
 import PrintButton from '@/components/admin/PrintButton';
@@ -36,17 +37,18 @@ export default async function PrintBatchPage(props: { params: Promise<{ id: stri
   const params = await props.params;
   const logId = params.id;
 
-  const supabase = await createClient();
+  const supabase = await createSupabaseClient();
 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/');
 
-  // Check if admin
-  const { data: adminUser } = await supabase.from('admin_users').select('*').eq('id', user.id).single();
-  if (!adminUser || !adminUser.is_active) redirect('/');
+  const adminSupabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
 
   // Fetch all students for this import_log_id
-  const { data: students } = await supabase
+  const { data: students } = await adminSupabase
     .from('students')
     .select('*')
     .eq('import_log_id', logId)
@@ -65,8 +67,8 @@ export default async function PrintBatchPage(props: { params: Promise<{ id: stri
   const studentIds = students.map(s => s.id);
 
   const [summaryRes, resultsRes, settingsRes, sigsRes] = await Promise.all([
-    supabase.from('result_summary').select('*').in('student_id', studentIds),
-    supabase.from('student_results').select(`
+    adminSupabase.from('result_summary').select('*').in('student_id', studentIds),
+    adminSupabase.from('student_results').select(`
       *,
       subjects (
         subject_name, subject_code,
@@ -74,8 +76,8 @@ export default async function PrintBatchPage(props: { params: Promise<{ id: stri
         passing_marks, is_graded_only, display_order
       )
     `).in('student_id', studentIds),
-    supabase.from('school_settings').select('*').eq('is_active', true).single(),
-    supabase.from('school_signatures').select('*').eq('is_active', true)
+    adminSupabase.from('school_settings').select('*').eq('is_active', true).single(),
+    adminSupabase.from('school_signatures').select('*').eq('is_active', true)
   ]);
 
   const allSummaries = summaryRes.data || [];
@@ -143,6 +145,9 @@ export default async function PrintBatchPage(props: { params: Promise<{ id: stri
               className="relative w-full bg-white shadow-xl print:shadow-none print:w-full overflow-hidden print:break-after-page"
               style={{
                 maxWidth: '210mm',
+                maxHeight: '292mm',
+                pageBreakAfter: 'always',
+                pageBreakInside: 'avoid',
                 border: '2px solid #8B0000',
                 fontFamily: 'Arial, Helvetica, sans-serif', 
                 fontSize: '10px'

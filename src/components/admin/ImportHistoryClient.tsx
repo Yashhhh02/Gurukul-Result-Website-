@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
-import { Search, FileType, CheckCircle, AlertCircle, XCircle, Trash2, Loader2, Info, Printer } from 'lucide-react';
+import { Search, FileType, CheckCircle, AlertCircle, XCircle, Trash2, Loader2, Info, Printer, Eye } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -166,6 +166,13 @@ export default function ImportHistoryClient({ logs }: { logs: any[] }) {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end items-center gap-2">
+                        <Link
+                          href={`/admin/import-history/${log.id}`}
+                          className="p-1.5 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20 rounded-md transition-colors inline-flex"
+                          title="View Imported Students"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Link>
                         {log.import_type !== 'students' && (
                           <Link
                             href={`/admin/print-batch/${log.id}`}

@@ -100,9 +100,42 @@ export async function POST(request: Request) {
     const numericMappings: { subjectCode: string; pracKey: number; writtenKey: number }[] = [];
     const gradedMappings: { subjectCode: string; gradeKey: number }[] = [];
     
-    const scanHeaderForSubjects = (headerRow: any[]) => {
-      if (!headerRow) return;
-      headerRow.forEach((cell, index) => {
+    // 1. Dynamically find the header row (contains 'student name' or 'name')
+    let headerRowIndex = -1;
+    for (let i = 0; i < Math.min(10, rows.length); i++) {
+      const r = rows[i];
+      if (r && r.some(cell => String(cell).toLowerCase().includes('student name') || String(cell).toLowerCase().trim() === 'name')) {
+        headerRowIndex = i;
+        break;
+      }
+    }
+
+    if (headerRowIndex === -1) {
+      return NextResponse.json({ error: 'Could not find header row containing Student Name' }, { status: 400 });
+    }
+
+    // 2. Map standard columns dynamically from the header row
+    const colMap: Record<string, number> = { name: 1, dob: -1, class: -1, div: -1, uid: -1, roll: -1, gr: -1 };
+    const headerRow = rows[headerRowIndex];
+    headerRow.forEach((cell, idx) => {
+      if (!cell) return;
+      const val = String(cell).toLowerCase().trim();
+      if (val.includes('name')) colMap['name'] = idx;
+      if (val === 'dob' || val.includes('date of birth')) colMap['dob'] = idx;
+      if (val === 'class') colMap['class'] = idx;
+      if (val.includes('div')) colMap['div'] = idx;
+      if (val.includes('uid') || val.includes('unique')) colMap['uid'] = idx;
+      if (val.includes('gr no') || val.includes('gr.') || val.includes('admission') || val.includes('gr number')) colMap['gr'] = idx;
+      if (val.includes('roll')) colMap['roll'] = idx;
+    });
+
+    // 3. Scan for subjects in all rows up to headerRowIndex
+    for (let i = 0; i <= headerRowIndex; i++) {
+      if (!rows[i]) continue;
+      const r = rows[i];
+      const nextRow = rows[i + 1] || []; // use next row to identify WRITTEN/PRACTICAL order
+      
+      r.forEach((cell: any, index: number) => {
         if (!cell) return;
         const normalized = String(cell).trim().toUpperCase().replace(/\s+/g, ' ');
         
@@ -116,7 +149,7 @@ export async function POST(request: Request) {
         }
         
         if (foundSubjectCode) {
-          // Check if already mapped to avoid duplicates (sometimes names repeat)
+          // Check if already mapped to avoid duplicates
           const alreadyMappedNumeric = numericMappings.some(m => m.subjectCode === foundSubjectCode);
           const alreadyMappedGraded = gradedMappings.some(m => m.subjectCode === foundSubjectCode);
           if (alreadyMappedNumeric || alreadyMappedGraded) return;
@@ -124,26 +157,25 @@ export async function POST(request: Request) {
           if (foundSubjectCode === 'ENVIRONMENTAL_STUDIES' || foundSubjectCode === 'PHYSICAL_EDUCATION') {
              gradedMappings.push({ subjectCode: foundSubjectCode, gradeKey: index });
           } else {
-             // For numeric subjects, Practical is at `index`, Written is at `index + 1`
-             numericMappings.push({ subjectCode: foundSubjectCode, pracKey: index, writtenKey: index + 1 });
+             // Dynamically check next row to see if index is practical or written
+             const val0 = String(nextRow[index] || '').toUpperCase();
+             const val1 = String(nextRow[index + 1] || '').toUpperCase();
+             
+             let pracKey = index;
+             let writtenKey = index + 1;
+             
+             if (val0.includes('WRIT') || val0 === 'TH' || val0.includes('THEORY')) {
+               writtenKey = index;
+               pracKey = index + 1;
+             }
+             
+             numericMappings.push({ subjectCode: foundSubjectCode, pracKey, writtenKey });
           }
         }
       });
     }
 
-    // Identify rows and scan headers based on stream
-    let dataStartIndex = 0;
-    
-    if (streamType === 'CS') {
-      // CS has numeric subjects in row 0, graded in row 1
-      scanHeaderForSubjects(rows[0]);
-      scanHeaderForSubjects(rows[1]);
-      dataStartIndex = 2;
-    } else {
-      // IT, PCM, PCMB all have their subjects in row 1
-      scanHeaderForSubjects(rows[1]);
-      dataStartIndex = 3;
-    }
+    const dataStartIndex = headerRowIndex + 1;
 
     // Auto-create missing subjects dynamically
     const missingSubjectsToCreate = [];
@@ -178,31 +210,36 @@ export async function POST(request: Request) {
     const dataRows = rows.slice(dataStartIndex);
     
     for (const row of dataRows) {
-      const studentName = streamType === 'CS' ? row[1] : row[1];
-      if (!studentName) continue;
+      const studentName = row[colMap['name']];
+      if (!studentName) {
+        // Skip empty rows or footer rows (like "Total IT Students")
+        continue;
+      }
 
       let uniqueId = '';
       let admissionNumber = '';
-      let rollNo = '';
-      let dob = null;
-      let div = 'A';
+      let rollNo = colMap['roll'] !== -1 ? String(row[colMap['roll']] || '').trim() : '';
+      let dob = colMap['dob'] !== -1 ? parseDate(row[colMap['dob']]) : null;
+      let div = colMap['div'] !== -1 ? String(row[colMap['div']] || 'A').trim() : 'A';
       
-      if (streamType === 'CS') {
-        dob = parseDate(row[4]);
-        uniqueId = String(row[5] || '').trim();
-        rollNo = String(row[6] || '').trim();
-        admissionNumber = String(row[7] || '').trim() || uniqueId || `TMP_${Date.now()}`;
-        div = String(row[3] || 'A').trim();
-      } else {
-        // IT, PCM, PCMB
-        dob = parseDate(row[2]);
-        const baseUniqueId = String(row[3] || '').trim();
-        const prefix = streamType.split('-')[0] + '-'; // e.g. IT-, PCM-, PCMB-
-        uniqueId = streamType === 'IT-GEO' ? 'GEO-' + baseUniqueId : (streamType === 'IT-NONGEO' ? 'NONGEO-' + baseUniqueId : prefix + baseUniqueId);
-        admissionNumber = uniqueId;
-        rollNo = String(row[4] || '').trim();
-        div = 'A'; // Defaults for non-CS
+      // Clean up "11TH B" to just "B"
+      if (div.toUpperCase().includes('11TH ')) {
+        div = div.toUpperCase().replace('11TH ', '').trim();
       }
+
+      let uidCell = colMap['uid'] !== -1 ? String(row[colMap['uid']] || '').trim() : '';
+      let grCell = colMap['gr'] !== -1 ? String(row[colMap['gr']] || '').trim() : '';
+
+      let baseUniqueId = uidCell || grCell;
+      let baseGr = grCell || uidCell;
+      
+      if (!baseUniqueId && !baseGr) {
+        baseUniqueId = `TMP_${Date.now()}`;
+        baseGr = baseUniqueId;
+      }
+
+      uniqueId = baseUniqueId;
+      admissionNumber = baseGr;
 
       const streamName = streamType.split('-')[0]; // CS, IT, PCM, PCMB
 
@@ -227,7 +264,10 @@ export async function POST(request: Request) {
         .select('id')
         .single();
 
-      if (studErr) continue;
+      if (studErr) {
+        console.error("Student Upsert Error for", studentName, "Data:", studentData, "Error:", studErr);
+        continue;
+      }
 
       const studentId = student.id;
       const resultsToUpsert = [];
