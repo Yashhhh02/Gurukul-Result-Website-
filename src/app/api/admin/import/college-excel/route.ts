@@ -219,7 +219,8 @@ export async function POST(request: Request) {
       let uniqueId = '';
       let admissionNumber = '';
       let rollNo = colMap['roll'] !== -1 ? String(row[colMap['roll']] || '').trim() : '';
-      let dob = colMap['dob'] !== -1 ? parseDate(row[colMap['dob']]) : null;
+      let dobRaw = colMap['dob'] !== -1 ? row[colMap['dob']] : null;
+      let dob = dobRaw ? parseDate(dobRaw) : '1900-01-01';
       let div = colMap['div'] !== -1 ? String(row[colMap['div']] || 'A').trim() : 'A';
       
       // Clean up "11TH B" to just "B"
@@ -253,14 +254,14 @@ export async function POST(request: Request) {
         class: '11TH',
         division: div,
         subject_group: streamName,
-        academic_session: '2025-2026',
+        academic_session: '2024-2025',
         import_log_id: importLogId || null,
         status: 'active'
       };
 
       const { data: student, error: studErr } = await adminSupabase
         .from('students')
-        .upsert(studentData, { onConflict: 'admission_number, academic_session' })
+        .upsert(studentData, { onConflict: 'admission_number' })
         .select('id')
         .single();
 

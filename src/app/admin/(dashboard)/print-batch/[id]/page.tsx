@@ -25,7 +25,7 @@ function sortSubjects(results: any[]): any[] {
 }
 
 function formatDOB(dob: string): string {
-  if (!dob) return '';
+  if (!dob || dob.startsWith('1900')) return '—';
   const d = new Date(dob);
   const day = String(d.getDate()).padStart(2, '0');
   const month = String(d.getMonth() + 1).padStart(2, '0');
