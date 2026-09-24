@@ -32,8 +32,8 @@ export default function AdminLogin() {
   } = useForm<AdminLoginForm>({
     resolver: zodResolver(adminLoginSchema),
     defaultValues: {
-      email: 'admin@gurukul.edu',
-      password: 'adminpassword123' 
+      email: '',
+      password: '' 
     }
   });
 
