@@ -254,7 +254,7 @@ export async function POST(request: Request) {
         class: '11TH',
         division: div,
         subject_group: streamName,
-        academic_session: '2024-2025',
+        academic_session: '2025-2026',
         import_log_id: importLogId || null,
         status: 'active'
       };

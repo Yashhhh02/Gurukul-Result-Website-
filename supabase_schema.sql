@@ -31,7 +31,7 @@ CREATE TABLE school_settings (
   tagline             TEXT,                   -- 'विद्या ददाति विनयम्'
   school_code         TEXT UNIQUE,
   affiliation_number  TEXT,                   -- '28993-97/Dt.15/11/2016'
-  index_number        TEXT,                   -- 'J-15.14.086'
+  index_number        TEXT,                   -- 'J-16.14.086'
   board_name          TEXT,                   -- 'Regd. by the Govt. of Maharashtra'
   college_type        TEXT,                   -- 'Higher Secondary / Self Finance / 16-17 / 2016'
   address_line1       TEXT,
@@ -274,7 +274,7 @@ INSERT INTO school_settings (
   'Bhagwat Prasad Gurukul Educational Trust''s',
   'विद्या ददाति विनयम्',
   '28993-97/Dt.15/11/2016',
-  'J-15.14.086',
+  'J-16.14.086',
   'Regd. by the Govt. of Maharashtra',
   'Higher Secondary / Self Finance / 16-17 / 2016',
   'D. N. Mohanty Estate, Near Shanti Mandir',

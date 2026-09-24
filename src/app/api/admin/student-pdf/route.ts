@@ -14,8 +14,8 @@ export async function GET(request: NextRequest) {
   if (secret !== (process.env.PDF_SECRET || 'gurukul-pdf-2025')) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-  if (!studentId || !stream) {
-    return NextResponse.json({ error: 'id and stream params required' }, { status: 400 });
+  if (!studentId) {
+    return NextResponse.json({ error: 'id param required' }, { status: 400 });
   }
 
   try {
@@ -26,7 +26,8 @@ export async function GET(request: NextRequest) {
     });
 
     const page = await browser.newPage();
-    await page.setViewport({ width: 794, height: 1123, deviceScaleFactor: 1 });
+    // 210mm x 148mm ratio at 96 DPI
+    await page.setViewport({ width: 794, height: 559, deviceScaleFactor: 1 });
 
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
     const baseUrlObj = new URL(baseUrl);
@@ -40,18 +41,22 @@ export async function GET(request: NextRequest) {
       if (cookies.length > 0) await page.setCookie(...cookies);
     }
 
-    const printUrl = `${baseUrl}/admin/bulk-print?stream=${encodeURIComponent(stream)}&pdf=1&studentId=${studentId}`;
-    await page.goto(printUrl, { waitUntil: 'networkidle0', timeout: 60000 });
-    await page.waitForSelector('.marksheet-wrapper', { timeout: 15000 });
+    const printUrl = stream 
+      ? `${baseUrl}/admin/bulk-print?stream=${encodeURIComponent(stream)}&pdf=1&studentId=${studentId}`
+      : `${baseUrl}/result`;
 
+    await page.goto(printUrl, { waitUntil: 'networkidle0', timeout: 60000 });
+    await page.waitForSelector('.marksheet-wrapper, #marksheet', { timeout: 15000 });
+
+    // Inject CSS to fit 210mm x 148mm with 0 gap
     await page.addStyleTag({
       content: `
         * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; box-sizing: border-box !important; }
-        body { margin: 0 !important; padding: 0 !important; background: white !important; }
+        html, body { width: 210mm !important; height: 148mm !important; margin: 0 !important; padding: 0 !important; background: white !important; overflow: hidden !important; }
         .no-print { display: none !important; }
-        .marksheet-wrapper { 
+        .marksheet-wrapper, #marksheet { 
           width: 210mm !important;
-          height: 296mm !important;
+          height: 148mm !important;
           overflow: hidden !important;
           page-break-inside: avoid !important;
           display: block !important;
@@ -59,11 +64,13 @@ export async function GET(request: NextRequest) {
           margin: 0 !important; 
           padding: 0 !important; 
         }
+        @page { size: 210mm 148mm; margin: 0; }
       `
     });
 
     const pdfBuffer = await page.pdf({
-      format: 'A4',
+      width: '210mm',
+      height: '148mm',
       printBackground: true,
       preferCSSPageSize: true,
       margin: { top: '0', bottom: '0', left: '0', right: '0' },

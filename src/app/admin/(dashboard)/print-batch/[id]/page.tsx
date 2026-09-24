@@ -137,7 +137,8 @@ export default async function PrintBatchPage(props: { params: Promise<{ id: stri
           const maxPerSubject = isCSOrIT ? 100 : (is12th ? 100 : 200);
           const maxMarksTotal = numericSubjects.length * maxPerSubject;
 
-          const verifyUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://result-portal-one.vercel.app'}/verify/${summaryData.result_id}`;
+          const resultId = summaryData?.result_id || student?.gr_number || student?.id;
+          const verifyUrl = `${process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_BASE_URL || 'https://result-portal-one.vercel.app'}/verify/${resultId}`;
 
           return (
             <div 
@@ -242,14 +243,24 @@ export default async function PrintBatchPage(props: { params: Promise<{ id: stri
                 </div>
               </div>
 
-              {/* ── MARK SHEET title ── */}
-              <div style={{ textAlign: 'center', padding: '3px 0', borderBottom: '1.5px solid #8B0000' }}>
-                <p style={{ fontSize: '12px', fontWeight: '900', color: '#8B0000', letterSpacing: '3px', textTransform: 'uppercase' }}>
-                  MARK SHEET
-                </p>
-                <p style={{ fontSize: '10px', fontWeight: '700', color: '#000' }}>
-                  {schoolSettings.current_session || student.academic_session}
-                </p>
+              {/* ── MARK SHEET title bar ── */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1.5px solid #8B0000', borderBottom: '1.5px solid #8B0000', padding: '3px 0', marginBottom: '4px' }}>
+                <h2 style={{ fontSize: '11px', fontWeight: '800', margin: 0, color: '#8B0000', textTransform: 'uppercase', minWidth: '150px' }}>
+                  STATEMENT OF MARKS
+                </h2>
+                <div style={{ textAlign: 'center' }}>
+                  <p style={{ fontSize: '14px', fontWeight: '900', color: '#8B0000', letterSpacing: '6px', textTransform: 'uppercase', margin: 0, fontFamily: 'Arial, Helvetica, sans-serif' }}>
+                    MARK SHEET
+                  </p>
+                  <p style={{ fontSize: '12px', fontWeight: '900', color: '#000', margin: '2px 0 0', fontFamily: 'Arial, Helvetica, sans-serif' }}>
+                    {student.academic_session || schoolSettings.current_session || '2025-2026'}
+                  </p>
+                </div>
+                <div style={{ minWidth: '150px', display: 'flex', justifyContent: 'flex-end' }}>
+                  <div style={{ fontSize: '9px', fontWeight: '700', color: '#222', backgroundColor: '#f0f0f0', padding: '1px 7px', borderRadius: '10px', border: '1px solid #ddd', whiteSpace: 'nowrap' }}>
+                    ACADEMIC SESSION: {student.academic_session || schoolSettings.current_session || '2025-2026'}
+                  </div>
+                </div>
               </div>
 
               {/* ═══════════════════════════════════════════════════

@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 type SettingsForm = {
   school_name: string;
   school_code: string;
+  index_number: string;
   affiliation_number: string;
   college_type: string;
   board_name: string;
@@ -137,10 +138,11 @@ export default function SettingsClient({ initialData }: { initialData: any }) {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5">School Code / Index No</label>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5">Index No</label>
               <input 
                 type="text" 
-                {...register('school_code')}
+                {...register('index_number')}
+                placeholder="e.g. J-16.14.086"
                 className="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-gray-900 dark:text-white"
               />
             </div>

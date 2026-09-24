@@ -89,7 +89,7 @@ body {
     display: none !important;
   }
   @page {
-    size: A4 portrait;
+    size: 210mm 148mm;
     margin: 0;
   }
   #marksheet {
@@ -97,6 +97,8 @@ body {
     break-inside: avoid;
     margin: 0 auto;
     width: 210mm !important;
+    height: 148mm !important;
     max-width: 210mm !important;
+    overflow: hidden !important;
   }
 }

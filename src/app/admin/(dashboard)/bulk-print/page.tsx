@@ -58,8 +58,9 @@ function Marksheet({ studentData, schoolSettings, classTeacherSig, schoolSeal, e
   const maxMarksNumeric = isCSOrIT ? 100 : (is12th ? 100 : 200);
   const maxMarksTotal = numericSubjects.length * maxMarksNumeric;
   const percentage = maxMarksTotal > 0 ? ((grandTotal / maxMarksTotal) * 100).toFixed(2) : '0.00';
-  const resultId = studentData.result_summary?.[0]?.result_id || studentData.id;
-  const verifyUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://result-portal-one.vercel.app'}/verify/${resultId}`;
+  const summaryObj = Array.isArray(studentData.result_summary) ? studentData.result_summary[0] : studentData.result_summary;
+  const resultId = summaryObj?.result_id || studentData.gr_number || studentData.admission_number || studentData.id;
+  const verifyUrl = `${process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://result-portal-one.vercel.app'}/verify/${resultId}`;
 
   return (
     <div style={{
@@ -116,9 +117,23 @@ function Marksheet({ studentData, schoolSettings, classTeacherSig, schoolSeal, e
 
       {/* STUDENT INFO */}
       <div style={{ padding: '4px 8px 3px', position: 'relative', zIndex: 1 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #ccc', paddingBottom: '2px', marginBottom: '4px' }}>
-          <h2 style={{ fontSize: '11px', fontWeight: '800', margin: 0, color: '#8B0000', textTransform: 'uppercase' }}>STATEMENT OF MARKS</h2>
-          <div style={{ fontSize: '9px', fontWeight: '700', color: '#222', backgroundColor: '#f0f0f0', padding: '1px 7px', borderRadius: '10px', border: '1px solid #ddd' }}>ACADEMIC SESSION: {studentData.academic_session}</div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1.5px solid #8B0000', borderBottom: '1.5px solid #8B0000', padding: '3px 0', marginBottom: '4px' }}>
+          <h2 style={{ fontSize: '11px', fontWeight: '800', margin: 0, color: '#8B0000', textTransform: 'uppercase', minWidth: '150px' }}>
+            STATEMENT OF MARKS
+          </h2>
+          <div style={{ textAlign: 'center' }}>
+            <p style={{ fontSize: '14px', fontWeight: '900', color: '#8B0000', letterSpacing: '6px', textTransform: 'uppercase', margin: 0, fontFamily: 'Arial, Helvetica, sans-serif' }}>
+              MARK SHEET
+            </p>
+            <p style={{ fontSize: '12px', fontWeight: '900', color: '#000', margin: '2px 0 0', fontFamily: 'Arial, Helvetica, sans-serif' }}>
+              {studentData.academic_session || schoolSettings.current_session || '2025-2026'}
+            </p>
+          </div>
+          <div style={{ minWidth: '150px', display: 'flex', justifyContent: 'flex-end' }}>
+            <div style={{ fontSize: '9px', fontWeight: '700', color: '#222', backgroundColor: '#f0f0f0', padding: '1px 7px', borderRadius: '10px', border: '1px solid #ddd', whiteSpace: 'nowrap' }}>
+              ACADEMIC SESSION: {studentData.academic_session || schoolSettings.current_session || '2025-2026'}
+            </div>
+          </div>
         </div>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '8px', marginBottom: '4px' }}>
           <thead>
@@ -491,14 +506,14 @@ export default async function BulkPrintPage({ searchParams }: { searchParams: Pr
           main { padding: 0 !important; display: block !important; }
 
           .marksheet-wrapper {
-            width: 210mm;
-            height: 296mm;
-            overflow: hidden;
+            width: 210mm !important;
+            height: 148mm !important;
+            overflow: hidden !important;
             page-break-inside: avoid;
+            break-inside: avoid;
             page-break-after: always;
             break-after: page;
-            display: flex;
-            align-items: flex-start;
+            display: block;
             margin: 0 !important;
             padding: 0 !important;
           }
@@ -510,7 +525,7 @@ export default async function BulkPrintPage({ searchParams }: { searchParams: Pr
             width: 210mm !important;
             transform-origin: top left;
           }
-          @page { margin: 0; size: A4 portrait; }
+          @page { margin: 0; size: 210mm 148mm; }
         }
         @media screen {
           .marksheet-wrapper {

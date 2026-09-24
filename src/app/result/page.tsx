@@ -104,7 +104,7 @@ export default async function ResultPage() {
       class:            'XI',
       division:         'SCIENCE - A',
       subject_group:    'PCM_CS',
-      academic_session: '2024-2025',
+      academic_session: '2025-2026',
     };
   }
 
@@ -141,7 +141,7 @@ export default async function ResultPage() {
       trust_name:         "Bhagwat Prasad Gurukul Educational Trust's",
       tagline:            'विद्या ददाति विनयम्',
       affiliation_number: '28993-97/Dt.15/11/2016',
-      index_number:       'J-15.14.086',
+      index_number:       'J-16.14.086',
       board_name:         'Regd. by the Govt. of Maharashtra',
       college_type:       'Higher Secondary / Self Finance / 16-17 / 2016',
       address_line1:      'D. N. Mohanty Estate, Near Shanti Mandir, Manorama Nagar',
@@ -152,7 +152,7 @@ export default async function ResultPage() {
       website:            'www.bhagwatprasadgurukulvidya.edu.in',
       logo_url:           null,
       college_reopens_on: null,
-      current_session:    '2024-2025',
+      current_session:    '2025-2026',
     };
   }
 
@@ -193,7 +193,8 @@ export default async function ResultPage() {
   const classTeacherSig = signatures.find(s => s.signature_type === 'class_teacher');
   const schoolSeal      = signatures.find(s => s.signature_type === 'school_seal');
 
-  const verifyUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://result-portal-one.vercel.app'}/verify/${summaryData.result_id}`;
+  const resultId = summaryData?.result_id || studentData?.gr_number || studentData?.id;
+  const verifyUrl = `${process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_BASE_URL || 'https://result-portal-one.vercel.app'}/verify/${resultId}`;
 
   return (
     <div className="min-h-screen bg-gray-100 py-4 px-2 print:py-0 print:px-0 flex flex-col items-center" style={{ fontFamily: 'Arial, Helvetica, sans-serif', fontSize: '10px' }}>
@@ -307,14 +308,24 @@ export default async function ResultPage() {
           </div>
         </div>
 
-        {/* ── MARK SHEET title ── */}
-        <div style={{ textAlign: 'center', padding: '3px 0', borderBottom: '1.5px solid #8B0000' }}>
-          <p style={{ fontSize: '12px', fontWeight: '900', color: '#8B0000', letterSpacing: '3px', textTransform: 'uppercase' }}>
-            MARK SHEET
-          </p>
-          <p style={{ fontSize: '10px', fontWeight: '700', color: '#000' }}>
-            {schoolSettings.current_session || studentData.academic_session}
-          </p>
+        {/* ── MARK SHEET title bar ── */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1.5px solid #8B0000', borderBottom: '1.5px solid #8B0000', padding: '3px 0', marginBottom: '4px' }}>
+          <h2 style={{ fontSize: '11px', fontWeight: '800', margin: 0, color: '#8B0000', textTransform: 'uppercase', minWidth: '150px' }}>
+            STATEMENT OF MARKS
+          </h2>
+          <div style={{ textAlign: 'center' }}>
+            <p style={{ fontSize: '14px', fontWeight: '900', color: '#8B0000', letterSpacing: '6px', textTransform: 'uppercase', margin: 0, fontFamily: 'Arial, Helvetica, sans-serif' }}>
+              MARK SHEET
+            </p>
+            <p style={{ fontSize: '12px', fontWeight: '900', color: '#000', margin: '2px 0 0', fontFamily: 'Arial, Helvetica, sans-serif' }}>
+              {studentData.academic_session || schoolSettings.current_session || '2025-2026'}
+            </p>
+          </div>
+          <div style={{ minWidth: '150px', display: 'flex', justifyContent: 'flex-end' }}>
+            <div style={{ fontSize: '9px', fontWeight: '700', color: '#222', backgroundColor: '#f0f0f0', padding: '1px 7px', borderRadius: '10px', border: '1px solid #ddd', whiteSpace: 'nowrap' }}>
+              ACADEMIC SESSION: {studentData.academic_session || schoolSettings.current_session || '2025-2026'}
+            </div>
+          </div>
         </div>
 
         {/* ═══════════════════════════════════════════════════
