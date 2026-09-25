@@ -38,7 +38,7 @@ export async function POST(req: Request) {
     let matchedStudent: any = null;
 
     if (students && students.length > 0) {
-      // 1. Try highest precision match (GR/Admission/ID match AND Roll match AND Name match)
+      // Strict exact match for all three fields (GR/Admission/ID, Roll, Name)
       for (const s of students) {
         const sGi = normalize(s.gr_number);
         const sAdm = normalize(s.admission_number);
@@ -46,41 +46,14 @@ export async function POST(req: Request) {
         const sRoll = normalize(s.roll_number);
         const sName = normalize(s.student_name);
 
-        const giMatch = sGi === normGi || sAdm === normGi || sUniq === normGi || (normGi.length >= 3 && (sGi.endsWith(normGi) || normGi.endsWith(sGi)));
-        const rollMatch = sRoll === normRoll || sRoll.includes(normRoll) || normRoll.includes(sRoll);
-        const nameMatch = sName === normName || sName.includes(normName) || normName.includes(sName);
+        const giMatch = sGi === normGi || sAdm === normGi || sUniq === normGi;
+        const rollMatch = sRoll === normRoll;
+        const nameMatch = sName === normName;
 
         if (giMatch && rollMatch && nameMatch) {
           matchedStudent = s;
           break;
         }
-      }
-
-      // 2. Secondary match: Any 2 fields match (e.g. GR + Name, or Roll + Name, or GR + Roll)
-      if (!matchedStudent) {
-        for (const s of students) {
-          const sGi = normalize(s.gr_number);
-          const sAdm = normalize(s.admission_number);
-          const sUniq = normalize(s.unique_id);
-          const sRoll = normalize(s.roll_number);
-          const sName = normalize(s.student_name);
-
-          const giMatch = sGi === normGi || sAdm === normGi || sUniq === normGi || (normGi.length >= 3 && (sGi.endsWith(normGi) || normGi.endsWith(sGi)));
-          const rollMatch = sRoll === normRoll || sRoll.includes(normRoll) || normRoll.includes(sRoll);
-          const nameMatch = sName === normName || sName.includes(normName) || normName.includes(sName);
-
-          if ((giMatch && nameMatch) || (rollMatch && nameMatch) || (giMatch && rollMatch)) {
-            matchedStudent = s;
-            break;
-          }
-        }
-      }
-    }
-
-    // 3. Fallback for demo / test login
-    if (!matchedStudent && (normGi === 'a1001' || normGi === '1001' || normName.includes('natirik'))) {
-      if (students && students.length > 0) {
-        matchedStudent = students[0];
       }
     }
 
