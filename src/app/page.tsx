@@ -154,7 +154,7 @@ export default function StudentLogin() {
               Important Announcement
             </h3>
             <p className="text-amber-700 text-[11px] leading-relaxed font-medium">
-              Final term results for Academic Session 2023-24 have been officially declared. Please enter your GR No., Roll No., and Name as printed on your ID card.
+              Final term results for Academic Session 2025-2026 have been officially declared. Please enter your GR No., Roll No., and Name as printed on your ID card.
             </p>
           </div>
 
